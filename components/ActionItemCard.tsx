@@ -13,6 +13,7 @@ interface ActionItemCardProps {
     onReaction: (itemId: string, emoji: string) => void;
     dragHandlers: {
         handleDragStart: (e: React.DragEvent, itemId: string) => void;
+        handleDragEnd: () => void;
         handleDragOver: (e: React.DragEvent) => void;
         handleCardDragEnter: (e: React.DragEvent, targetItemId: string) => void;
         handleCardDrop: (e: React.DragEvent, targetItemId: string) => void;
