@@ -46,7 +46,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     sortBy: "none",
     groupBy: "none",
   });
-  const [isCardOverviewEnabled, setIsCardOverviewEnabled] = useState(true);
+  const [isCardOverviewEnabled, setIsCardOverviewEnabled] = useState(false);
 
   // User & Participants State
   const [currentUser, setCurrentUser] = useState<User>(user || INITIAL_USER);
@@ -251,6 +251,18 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
         const now = Date.now();
         const diff = Math.max(0, Math.floor((end - now) / 1000));
         setRemainingTime(diff);
+        if (diff === 0) {
+          clearInterval(interval);
+          const resetConfig: TimerConfig = { endTime: null, duration: 0, status: "stopped" };
+          setTimer(resetConfig);
+          dataService.updateSprintConfig(sprintId, {
+            columns,
+            votingConfig,
+            permissions,
+            settings: { isCardOverviewEnabled },
+            timer: resetConfig,
+          });
+        }
       };
 
       calculateRemaining();
@@ -291,8 +303,14 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     );
   }, [currentUser]);
 
+  const actionListColumnIds = new Set(
+    columns.filter((c) => c.viewMode === "action-list").map((c) => c.id),
+  );
   const userVotesUsed = items.reduce(
-    (acc, item) => acc + ((item.votes || {})[currentUser.id] || 0),
+    (acc, item) =>
+      actionListColumnIds.has(item.column_id)
+        ? acc
+        : acc + ((item.votes || {})[currentUser.id] || 0),
     0,
   );
 
@@ -364,6 +382,27 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
 
     refreshData();
   };
+
+  // Auto-end voting when all participants have used all their votes
+  const isAutoEndingRef = useRef(false);
+  useEffect(() => {
+    if (!votingConfig || !isVotingActive || participants.length === 0 || isAutoEndingRef.current) return;
+    const actionListIds = new Set(columns.filter((c) => c.viewMode === "action-list").map((c) => c.id));
+    const allDone = participants.every((p) => {
+      const used = items
+        .filter((i) => !actionListIds.has(i.column_id))
+        .reduce((acc, i) => acc + ((i.votes || {})[p.id] || 0), 0);
+      return used >= votingConfig.votesPerParticipant;
+    });
+    if (allDone) {
+      isAutoEndingRef.current = true;
+      confirmEndVoting();
+    }
+  }, [items, participants, votingConfig, isVotingActive]);
+
+  useEffect(() => {
+    if (!isVotingActive) isAutoEndingRef.current = false;
+  }, [isVotingActive]);
 
   const handleVote = async (itemId: string, delta: 1 | -1) => {
     if (!votingConfig) return;

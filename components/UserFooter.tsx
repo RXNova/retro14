@@ -32,11 +32,11 @@ export const UserFooter: React.FC<UserFooterProps> = ({ currentUser, participant
              <span className="text-[10px] font-bold text-[#5E6C84] uppercase whitespace-nowrap">Participants ({participants.length})</span>
            </div>
            <div className="flex-1 min-w-0 overflow-hidden">
-             <div className="flex flex-wrap gap-1 max-h-20 overflow-auto pr-1">
+             <div className="flex flex-wrap gap-1 max-h-20 overflow-auto px-1">
              {sortedParticipants.map(p => (
                <div 
                  key={p.id} 
-                 className={`flex items-center gap-2 px-3 h-6 rounded-full border transition-all ${p.isHandRaised ? 'bg-[#EAE6FF] border-[#6554C0]' : 'bg-white border-[#DFE1E6]'} ${p.id === currentUser.id ? 'ring-2 ring-offset-1 ring-[#0052CC]/20' : ''}`}
+                 className={`flex items-center gap-2 px-3 h-6 rounded-full border transition-all ${p.isHandRaised ? 'bg-[#EAE6FF] border-[#6554C0]' : 'bg-white border-[#DFE1E6]'} ${p.id === currentUser.id ? 'ring-2 ring-offset-1 ring-[#0052CC]/40' : ''}`}
                >
                   <div 
                     className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] text-white font-bold"

@@ -121,6 +121,10 @@ export const Board: React.FC<BoardProps> = ({
           e.dataTransfer.effectAllowed = 'move';
           e.stopPropagation();
       },
+      handleDragEnd: () => {
+          setDraggedItemId(null);
+          setDragOverTargetId(null);
+      },
       handleDragOver: (e: React.DragEvent) => {
           e.preventDefault();
       },

@@ -15,7 +15,7 @@ interface VoteControlProps {
 
 export const VoteControl: React.FC<VoteControlProps> = ({ itemId, votes, allVotes, isVotingActive, votingConfig, userVotesUsed, onVote }) => {
      const totalVotes = (Object.values(allVotes || {}) as number[]).reduce((a, b) => a + b, 0);
-     
+
      if (!isVotingActive && totalVotes === 0) return null;
 
      if (isVotingActive) {
@@ -25,34 +25,34 @@ export const VoteControl: React.FC<VoteControlProps> = ({ itemId, votes, allVote
 
          return (
              <div className="flex items-center gap-1 bg-[#F4F5F7] hover:bg-[#EBECF0] rounded-full px-1.5 py-0.5 border border-[#DFE1E6] transition-colors shadow-sm">
-                <button 
-                    onClick={(e) => { e.stopPropagation(); if (canAdd) onVote(itemId, 1); }}
-                    disabled={!canAdd}
-                    className={`flex items-center justify-center w-5 h-5 rounded-full hover:bg-white transition-colors ${votes > 0 ? 'text-[#0052CC]' : 'text-[#5E6C84]'} ${!canAdd ? 'opacity-30 cursor-not-allowed' : ''}`}
-                    title={isMaxed ? "No votes left" : isSingleVoted ? "Already voted" : "Vote"}
-                >
-                    <ThumbsUp size={12} className={votes > 0 ? "fill-current" : ""} />
-                </button>
-                
-                {votes > 0 && (
-                    <span className="text-[10px] font-bold text-[#0052CC] min-w-[8px] text-center" title="Your votes">{votes}</span>
-                )}
+               {votes > 0 && (
+                   <button
+                       onClick={(e) => { e.stopPropagation(); onVote(itemId, -1); }}
+                       className="flex items-center justify-center w-4 h-4 rounded-full text-red-500 hover:bg-red-50 mr-0.5"
+                       title="Remove Vote"
+                   >
+                       <Minus size={10} />
+                   </button>
+               )}
 
-                {/* Show total votes only if not anonymous OR if it's the current user's count */}
-                {!votingConfig?.anonymous && totalVotes > 0 && totalVotes !== votes && (
-                    <span className="text-[10px] font-medium text-[#5E6C84] border-l border-n40 pl-1 ml-0.5" title="Total votes">{totalVotes}</span>
-                )}
-                
-                {votes > 0 && (
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); onVote(itemId, -1); }}
-                        className="flex items-center justify-center w-4 h-4 rounded-full text-red-500 hover:bg-red-50 ml-0.5"
-                        title="Remove Vote"
-                    >
-                        <Minus size={10} />
-                    </button>
-                )}
-             </div>
+               {votes > 0 && (
+                   <span className="text-[10px] font-bold text-[#0052CC] min-w-[8px] text-center" title="Your votes">{votes}</span>
+               )}
+
+               {/* Show total votes only if not anonymous OR if it's the current user's count */}
+               {!votingConfig?.anonymous && totalVotes > 0 && totalVotes !== votes && (
+                   <span className="text-[10px] font-medium text-[#5E6C84] border-r border-n40 pr-1 mr-0.5" title="Total votes">{totalVotes}</span>
+               )}
+
+               <button
+                   onClick={(e) => { e.stopPropagation(); if (canAdd) onVote(itemId, 1); }}
+                   disabled={!canAdd}
+                   className={`flex items-center justify-center w-5 h-5 rounded-full hover:bg-white transition-colors ${votes > 0 ? 'text-[#0052CC]' : 'text-[#5E6C84]'} ${!canAdd ? 'opacity-30 cursor-not-allowed' : ''}`}
+                   title={isMaxed ? "No votes left" : isSingleVoted ? "Already voted" : "Vote"}
+               >
+                   <ThumbsUp size={12} className={votes > 0 ? "fill-current" : ""} />
+               </button>
+            </div>
          );
      }
 
