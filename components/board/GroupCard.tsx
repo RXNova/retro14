@@ -124,6 +124,7 @@ export const GroupCard: React.FC<GroupCardProps> = ({
             <div
                 draggable
                 onDragStart={(e) => dragHandlers.handleDragStart(e, groupItem.id)}
+                onDragEnd={() => dragHandlers.handleDragEnd?.()}
                 onDragOver={dragHandlers.handleDragOver}
                 onDragEnter={(e) => dragHandlers.handleCardDragEnter(e, groupItem.id)}
                 onDragLeave={() => dragHandlers.setDragOverTargetId(null)}
@@ -243,6 +244,7 @@ export const GroupCard: React.FC<GroupCardProps> = ({
         <div
             draggable
             onDragStart={(e) => dragHandlers.handleDragStart(e, groupItem.id)}
+            onDragEnd={() => dragHandlers.handleDragEnd?.()}
             onDragOver={dragHandlers.handleDragOver}
             onDragEnter={(e) => dragHandlers.handleCardDragEnter(e, groupItem.id)}
             onDragLeave={() => dragHandlers.setDragOverTargetId(null)}

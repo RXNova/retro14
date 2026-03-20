@@ -45,6 +45,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = ({
         <div 
             draggable
             onDragStart={(e) => dragHandlers.handleDragStart(e, item.id)}
+            onDragEnd={() => dragHandlers.handleDragEnd?.()}
             onDragOver={dragHandlers.handleDragOver}
             onDragEnter={(e) => dragHandlers.handleCardDragEnter(e, item.id)}
             onDragLeave={() => dragHandlers.setDragOverTargetId(null)}

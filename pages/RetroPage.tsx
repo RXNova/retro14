@@ -9,6 +9,7 @@ import { ColumnSettingsDialog } from '../components/ColumnSettingsDialog';
 import { ShareDialog } from '../components/ShareDialog';
 import { VotingConfigDialog } from '../components/VotingConfigDialog';
 import { Timer } from '../components/Timer';
+import { TimesUpOverlay } from '../components/TimesUpOverlay';
 import { UserFooter } from '../components/UserFooter';
 import { TeamModal } from '../components/TeamModal';
 import { HistoryModal } from '../components/HistoryModal';
@@ -79,6 +80,16 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
     } = useRetroBoard(user, sprintId);
 
     const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
+    const [forceEndChecked, setForceEndChecked] = useState(false);
+    const [showTimesUp, setShowTimesUp] = useState(false);
+    const prevRemainingTime = useRef<number | null>(null);
+
+    useEffect(() => {
+        if (prevRemainingTime.current !== null && prevRemainingTime.current > 0 && remainingTime === 0) {
+            setShowTimesUp(true);
+        }
+        prevRemainingTime.current = remainingTime ?? null;
+    }, [remainingTime]);
     const [isTeamOpen, setIsTeamOpen] = useState(false);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [isExportOpen, setIsExportOpen] = useState(false);
@@ -127,6 +138,7 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
 
   return (
     <div className="flex h-screen w-full bg-n10 overflow-hidden">
+            {showTimesUp && <TimesUpOverlay onDismiss={() => setShowTimesUp(false)} />}
             <div ref={sidebarRef}>
               <Sidebar 
                   collapsed={sidebarCollapsed} 
@@ -428,31 +440,77 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
           />
       )}
 
-      {isEndVotingConfirmOpen && (
-        <div className="fixed inset-0 bg-n900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-[1px]">
-             <div className="bg-white w-full max-w-sm rounded-lg shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
-                <div className="p-4 border-b border-n40 flex justify-between items-center bg-n10">
-                    <h3 className="font-semibold text-n800 flex items-center gap-2">
-                        <AlertTriangle size={16} className="text-b400" />
-                        End Voting Session?
-                    </h3>
-                    <button onClick={() => setIsEndVotingConfirmOpen(false)}><X size={18} className="text-n300" /></button>
-                </div>
-                <div className="p-6">
-                    <p className="text-sm text-n800">This will conclude the voting session. Cards with votes will be <strong>copied</strong> to a new <strong>"Voting Results"</strong> column.</p>
-                </div>
-                <div className="p-4 border-t border-n40 bg-n10 flex justify-end gap-2">
-                    <button onClick={() => setIsEndVotingConfirmOpen(false)} className="px-2 py-1 text-xs font-medium text-n500 hover:bg-n30 rounded">Cancel</button>
-                    <button 
-                        onClick={confirmEndVoting} 
-                        className="px-3 py-1.5 text-sm font-bold text-white bg-b400 hover:bg-b500 rounded"
-                    >
-                        End Voting
-                    </button>
-                </div>
-             </div>
-        </div>
-      )}
+      {isEndVotingConfirmOpen && (() => {
+        const actionListColumnIds = new Set(columns.filter(c => c.viewMode === 'action-list').map(c => c.id));
+        const participantVotes = participants.map(p => {
+          const used = items
+            .filter(i => !actionListColumnIds.has(i.column_id))
+            .reduce((acc, i) => acc + ((i.votes || {})[p.id] || 0), 0);
+          const done = used >= (votingConfig?.votesPerParticipant || 0);
+          return { ...p, used, done };
+        });
+        return (
+          <div className="fixed inset-0 bg-n900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-[1px]">
+               <div className="bg-white w-full max-w-sm rounded-lg shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
+                  <div className="p-4 border-b border-n40 flex justify-between items-center bg-n10">
+                      <h3 className="font-semibold text-n800 flex items-center gap-2">
+                          <AlertTriangle size={16} className="text-b400" />
+                          End Voting Session?
+                      </h3>
+                      <button onClick={() => { setIsEndVotingConfirmOpen(false); setForceEndChecked(false); }}><X size={18} className="text-n300" /></button>
+                  </div>
+                  <div className="p-4">
+                      <p className="text-sm text-n800 mb-3">Cards with votes will be <strong>copied</strong> to a new <strong>"Voting Results"</strong> column.</p>
+                      <div className="border border-n40 rounded-md overflow-hidden">
+                          <div className="px-3 py-1.5 bg-n10 border-b border-n40 flex justify-between text-[10px] font-bold text-n400 uppercase">
+                              <span>Participant</span>
+                              <span>Votes Used</span>
+                          </div>
+                          {participantVotes.map(p => (
+                              <div key={p.id} className="flex items-center justify-between px-3 py-2 border-b border-n40 last:border-0">
+                                  <div className="flex items-center gap-2">
+                                      <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] text-white font-bold shrink-0" style={{ backgroundColor: p.color }}>
+                                          {p.name.charAt(0)}
+                                      </div>
+                                      <span className="text-sm text-n800">{p.name}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                      <span className={`text-xs font-bold ${p.done ? 'text-g300' : 'text-r300'}`}>
+                                          {p.used} / {votingConfig?.votesPerParticipant}
+                                      </span>
+                                      <span className={`text-xs font-bold ${p.done ? 'text-g300' : 'text-r300'}`}>
+                                          {p.done ? '✓' : '✗'}
+                                      </span>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  </div>
+                  <div className="p-4 border-t border-n40 bg-n10 flex items-center justify-between gap-2">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                              type="checkbox"
+                              checked={forceEndChecked}
+                              onChange={e => setForceEndChecked(e.target.checked)}
+                              className="w-3.5 h-3.5 accent-b400 cursor-pointer"
+                          />
+                          <span className="text-xs text-n500 font-medium">Force end voting</span>
+                      </label>
+                      <div className="flex gap-2">
+                          <button onClick={() => { setIsEndVotingConfirmOpen(false); setForceEndChecked(false); }} className="px-2 py-1 text-xs font-medium text-n500 hover:bg-n30 rounded">Cancel</button>
+                          <button
+                              onClick={confirmEndVoting}
+                              disabled={!forceEndChecked}
+                              className={`px-3 py-1.5 text-sm font-bold text-white rounded transition-colors ${forceEndChecked ? 'bg-r400 hover:bg-r500' : 'bg-n100 cursor-not-allowed text-n300'}`}
+                          >
+                              End Voting
+                          </button>
+                      </div>
+                  </div>
+               </div>
+          </div>
+        );
+      })()}
 
     </div>
   );

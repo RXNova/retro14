@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreHorizontal, ArrowDownAZ, Check, Edit2, Send, ChevronDown, ChevronUp, Plus, Maximize2, Minimize2, EyeOff, Filter, Layers } from 'lucide-react';
+import { MoreHorizontal, ArrowDownAZ, ArrowDown01, Check, Edit2, Send, ChevronDown, ChevronUp, Plus, Maximize2, Minimize2, EyeOff, Filter, Layers } from 'lucide-react';
 import { Column, RetroItem, User, VotingConfig, PermissionSettings } from '../../types';
 import { getThemeColors, getUniqueAuthors } from '../../utils/theme';
 import { ActionItemCard } from '../ActionItemCard';
@@ -67,15 +67,17 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     onAddActionItem, onToggleActionItem, onAddComment, onUpdateItemContent, onDelete, permissions, onHideColumn, onInputActive,
     dragHandlers, globalViewConfig, isCardOverviewEnabled
 }) => {
+    const isActionList = column.viewMode === 'action-list';
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isStagingOpen, setIsStagingOpen] = useState(true);
+    const [isSortedByVotes, setIsSortedByVotes] = useState(isActionList);
     const [newItemText, setNewItemText] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    
+
     // Theme logic
     const colors = getThemeColors(column.colorTheme);
-    const isActionList = column.viewMode === 'action-list';
 
     // View State calculation
     const isGroupedByAuthor = globalViewConfig.groupBy === 'author' || viewState.isGrouped;
@@ -84,6 +86,13 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
     let publishedItems = items.filter(i => !i.is_staged && !i.parent_id);
     let stagedItems = items.filter(i => i.is_staged && !i.parent_id);
+
+    // Apply vote sort (action-list columns)
+    if (isSortedByVotes) {
+        const totalVotes = (item: RetroItem) =>
+            (Object.values(item.votes || {}) as number[]).reduce((a, b) => a + b, 0);
+        publishedItems = [...publishedItems].sort((a, b) => totalVotes(b) - totalVotes(a));
+    }
 
     // Apply Sorting if enabled
     if (isSortedByAuthor) {
@@ -306,7 +315,16 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                                 
                                 {/* Sort & Filter Section */}
                                 <div className="border-b border-[#DFE1E6] pb-1 mb-1">
-                                    <button 
+                                    {isActionList && (
+                                        <button
+                                            onClick={() => { setIsSortedByVotes(v => !v); }}
+                                            className="w-full flex items-center justify-between px-4 py-2 hover:bg-[#F4F5F7] text-sm text-[#172B4D]"
+                                        >
+                                            <span className="flex items-center gap-2"><ArrowDown01 size={14} className="text-[#5E6C84]" /> Sort by Votes</span>
+                                            {isSortedByVotes && <Check size={14} className="text-[#0052CC]" />}
+                                        </button>
+                                    )}
+                                    <button
                                         onClick={() => { onToggleSort(column.id); }}
                                         className="w-full flex items-center justify-between px-4 py-2 hover:bg-[#F4F5F7] text-sm text-[#172B4D]"
                                     >

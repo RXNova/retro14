@@ -389,6 +389,9 @@ export const dataService = {
     const updates: any = { column_id: columnId, parent_id: null }; // Reset parent_id when moving to a column (ungroup)
     if (isStaged !== undefined) {
       updates.is_staged = isStaged;
+      if (isStaged === false) {
+        updates.created_at = new Date().toISOString();
+      }
     }
 
     if (isSupabaseConfigured && supabase) {
@@ -401,6 +404,9 @@ export const dataService = {
       item.parent_id = null; // Ungroup
       if (isStaged !== undefined) {
         item.is_staged = isStaged;
+        if (isStaged === false) {
+          item.created_at = new Date().toISOString();
+        }
       }
     }
     return Promise.resolve();
@@ -498,10 +504,11 @@ export const dataService = {
   },
 
   async publishAllInColumn(columnId: string, userId: string): Promise<void> {
+    const now = new Date().toISOString();
     if (isSupabaseConfigured && supabase) {
       await supabase
         .from("retro_items")
-        .update({ is_staged: false })
+        .update({ is_staged: false, created_at: now })
         .eq("column_id", columnId)
         .eq("is_staged", true)
         .eq("user_id", userId);
@@ -514,6 +521,7 @@ export const dataService = {
         item.user_id === userId
       ) {
         item.is_staged = false;
+        item.created_at = now;
       }
     });
     return Promise.resolve();

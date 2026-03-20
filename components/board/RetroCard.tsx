@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { SmilePlus, Pencil, Trash2, Check, X } from 'lucide-react';
 import { RetroItem, User, VotingConfig, PermissionSettings } from '../../types';
 import { VoteControl } from './VoteControl';
 import { colors } from '../../utils/theme';
 
-const EMOJIS = ['👍', '❤️', '🔥', '😂', '😮'];
+const EMOJIS = ['👍', '❤️', '🔥', '😂', '😢'];
 
 /**
  * Props for the RetroCard component.
@@ -26,6 +27,7 @@ interface RetroCardProps {
     permissions: PermissionSettings;
     dragHandlers: {
         handleDragStart: (e: React.DragEvent, itemId: string) => void;
+        handleDragEnd: () => void;
         handleDragOver: (e: React.DragEvent) => void;
         handleCardDragEnter: (e: React.DragEvent, targetItemId: string) => void;
         handleCardDrop: (e: React.DragEvent, targetItemId: string) => void;
@@ -45,6 +47,9 @@ export const RetroCard: React.FC<RetroCardProps> = ({
     isCardOverviewEnabled = true
 }) => {
     const [hoveredReactionId, setHoveredReactionId] = useState<string | null>(null);
+    const reactionCloseTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const smileButtonRef = useRef<HTMLButtonElement>(null);
+    const [pickerPos, setPickerPos] = useState<{ top: number; left: number } | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(item.content);
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -92,6 +97,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
             <div
                 draggable={!isEditing}
                 onDragStart={(e) => !isEditing && dragHandlers.handleDragStart(e, item.id)}
+                onDragEnd={() => dragHandlers.handleDragEnd?.()}
                 onClick={handleClick}
                 onDragOver={dragHandlers.handleDragOver}
                 onDragEnter={(e) => dragHandlers.handleCardDragEnter(e, item.id)}
@@ -229,32 +235,46 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                             </button>
                         ))}
                         
-                        <div 
+                        <div
                             className="relative group/reaction shrink-0"
-                            onMouseLeave={() => setHoveredReactionId(null)}
+                            onMouseEnter={() => {
+                                if (reactionCloseTimer.current) clearTimeout(reactionCloseTimer.current);
+                                if (smileButtonRef.current) {
+                                    const rect = smileButtonRef.current.getBoundingClientRect();
+                                    setPickerPos({ top: rect.top - 4, left: rect.right });
+                                }
+                                setHoveredReactionId(item.id);
+                            }}
+                            onMouseLeave={() => {
+                                reactionCloseTimer.current = setTimeout(() => { setHoveredReactionId(null); setPickerPos(null); }, 300);
+                            }}
                         >
-                            <button 
+                            <button
+                                ref={smileButtonRef}
                                 className="p-0.5 rounded text-n90 hover:bg-n30 hover:text-n800 transition-colors"
-                                onMouseEnter={() => setHoveredReactionId(item.id)}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <SmilePlus size={12} />
                             </button>
-                            {/* Reaction Picker Popup */}
-                            {hoveredReactionId === item.id && (
-                                <div 
-                                    className="absolute bottom-full right-0 bg-white shadow-lg rounded-full border border-n40 p-1 flex gap-1 animate-in zoom-in-95 duration-150 z-20"
+                            {/* Reaction Picker Popup — rendered in portal to escape overflow:hidden */}
+                            {hoveredReactionId === item.id && pickerPos && createPortal(
+                                <div
+                                    className="fixed bg-white shadow-lg rounded-full border border-n40 p-1 flex gap-1 animate-in zoom-in-95 duration-150 z-[9999]"
+                                    style={{ top: pickerPos.top, left: pickerPos.left, transform: 'translate(-100%, -100%)' }}
+                                    onMouseEnter={() => { if (reactionCloseTimer.current) clearTimeout(reactionCloseTimer.current); }}
+                                    onMouseLeave={() => { reactionCloseTimer.current = setTimeout(() => { setHoveredReactionId(null); setPickerPos(null); }, 300); }}
                                 >
                                     {EMOJIS.map(emoji => (
                                         <button
                                             key={emoji}
-                                            onClick={(e) => { e.stopPropagation(); onReaction(item.id, emoji); setHoveredReactionId(null); }}
+                                            onClick={(e) => { e.stopPropagation(); onReaction(item.id, emoji); setHoveredReactionId(null); setPickerPos(null); }}
                                             className="w-6 h-6 flex items-center justify-center text-base hover:bg-n20 rounded-full transition-transform hover:scale-125"
                                         >
                                             {emoji}
                                         </button>
                                     ))}
-                                </div>
+                                </div>,
+                                document.body
                             )}
                         </div>
                     </div>
