@@ -39,7 +39,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
         setHistory(finalHistory);
         setLoading(false);
     });
-  }, [userId, currentSprintId]);
+  }, [userId, currentSprintId, currentSprintName, currentSprintCode]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);

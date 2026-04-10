@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ThumbsUp, Minus } from 'lucide-react';
-import { RetroItem, VotingConfig } from '../../types';
+import { VotingConfig } from '../../types';
 
 interface VoteControlProps {
     itemId: string;

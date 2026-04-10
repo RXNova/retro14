@@ -6,8 +6,6 @@ import {
   Comment,
   Reaction,
   ActionItem,
-  Column,
-  VotingConfig,
   SprintConfig,
 } from "../types";
 

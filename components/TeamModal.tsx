@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, User as UserIcon, Mail, Shield } from 'lucide-react';
+import { X, User as UserIcon, Shield } from 'lucide-react';
 import { User } from '../types';
 
 interface TeamModalProps {

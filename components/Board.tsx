@@ -45,7 +45,7 @@ interface ColumnViewState {
 }
 
 export const Board: React.FC<BoardProps> = ({ 
-    columns, items, currentUser, participants, sortedParticipants,
+    columns, items, currentUser, sortedParticipants,
     onMoveItem, onItemClick, onAddItem, onPublishAll, onReaction, onGroupItem, onEditColumn,
     isVotingActive, votingConfig, userVotesUsed, onVote,
     onAddActionItem, onToggleActionItem, onAddComment, onUpdateItemContent, onDelete, permissions,

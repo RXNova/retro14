@@ -34,7 +34,7 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
     const {
         columns, setColumns,
         items, selectedItem, setSelectedItem,
-        currentUser, setCurrentUser,
+        currentUser,
         participants,
         // ...
         isVotingConfigOpen, setIsVotingConfigOpen,
@@ -108,7 +108,7 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
 
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [sidebarCollapsed]);
+    }, [sidebarCollapsed, setSidebarCollapsed]);
 
     // Handle window resize
     useEffect(() => {
@@ -124,7 +124,7 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
 
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [setSidebarCollapsed]);
 
     // Sort: Hand raised first (by time), then others
     const sortedParticipants = [...participants].sort((a, b) => {
