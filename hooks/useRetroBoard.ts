@@ -240,6 +240,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     return () => {
       if (channel) channel.unsubscribe();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sprintId]);
 
   // Timer Effect
@@ -273,6 +274,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
       setRemainingTime(null);
     }
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timer]);
 
   // Track User State Updates
@@ -398,6 +400,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
       isAutoEndingRef.current = true;
       confirmEndVoting();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, participants, votingConfig, isVotingActive]);
 
   useEffect(() => {
@@ -523,7 +526,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     itemId: string,
     newStatus: string,
     isStaged?: boolean,
-    index?: number,
+    _index?: number,
   ) => {
     const movedItem = items.find((i) => i.id === itemId);
 

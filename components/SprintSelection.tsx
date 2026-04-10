@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
 import { dataService } from '../services/dataService';
 import { User } from '../types';
 import { Loader2, Plus, Users, ArrowRight, History } from 'lucide-react';

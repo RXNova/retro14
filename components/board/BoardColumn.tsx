@@ -62,8 +62,8 @@ interface BoardColumnProps {
 export const BoardColumn: React.FC<BoardColumnProps> = ({
     column, items, allItems, currentUser, sortedParticipants, viewState, isVotingActive, votingConfig, userVotesUsed,
     dragOverTargetId, draggedItemId, expandedGroups, isMaximized, isLoading, activeInputColumnId, onToggleMaximize,
-    onMoveItem, onAddItem, onPublishAll, onEditColumn, onToggleSort, onToggleGroupByAuthor, onToggleAuthorFilter,
-    onVote, onReaction, onItemClick, onGroupItem, onToggleGroup,
+    onAddItem, onPublishAll, onEditColumn, onToggleSort, onToggleGroupByAuthor, onToggleAuthorFilter,
+    onVote, onReaction, onItemClick, onToggleGroup,
     onAddActionItem, onToggleActionItem, onAddComment, onUpdateItemContent, onDelete, permissions, onHideColumn, onInputActive,
     dragHandlers, globalViewConfig, isCardOverviewEnabled
 }) => {

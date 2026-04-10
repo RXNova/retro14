@@ -1,10 +1,7 @@
 import React from 'react';
-import { ArrowLeft, AlertTriangle, ShieldAlert, Clock, Download, Database } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { AlertTriangle, ShieldAlert, Clock, Download, Database } from 'lucide-react';
 
 export const Terms: React.FC = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-n10 p-4 md:p-8">
       <div className="max-w-3xl mx-auto bg-white rounded-[3px] shadow-sm border border-n40 overflow-hidden">
