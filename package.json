@@ -7,7 +7,7 @@
     "start": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "oxlint ."
+    "lint": "oxlint --config oxlint.json ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
