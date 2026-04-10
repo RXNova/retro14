@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { RetroPage } from './pages/RetroPage';
 import { Terms } from './pages/Terms';
+import { LandingPage } from './pages/LandingPage';
 import { SprintSelection } from './components/SprintSelection';
 import { Auth } from './components/Auth';
 import { supabase, isSupabaseConfigured } from './lib/supabaseClient';
@@ -92,19 +93,8 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (!isSupabaseConfigured) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-n10 p-4 text-center">
-        <AlertCircle size={48} className="text-r500 mb-4" />
-        <h1 className="text-2xl font-bold text-n800 mb-2">Configuration Required</h1>
-        <p className="text-n600 max-w-md">
-          Please add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to your <code>.env</code> file to connect to Supabase.
-        </p>
-      </div>
-    );
-  }
-
   useEffect(() => {
+    if (!isSupabaseConfigured) { setAuthLoading(false); return; }
     // 1. Check active session
     supabase?.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -209,15 +199,21 @@ const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/terms" element={<Terms />} />
-      <Route path="/auth/*" element={!session ? <Auth /> : <Navigate to={redirectPath} replace />} />
+      <Route path="/auth/*" element={!isSupabaseConfigured ? (
+        <div className="h-screen w-full flex flex-col items-center justify-center bg-n10 p-4 text-center">
+          <AlertCircle size={48} className="text-r500 mb-4" />
+          <h1 className="text-2xl font-bold text-n800 mb-2">Configuration Required</h1>
+          <p className="text-n600 max-w-md">Please add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to your <code>.env</code> file.</p>
+        </div>
+      ) : !session ? <Auth /> : <Navigate to={redirectPath} replace />} />
       <Route path="/" element={
         session ? (
-            <SprintSelection 
-                user={appUser} 
-                onSprintSelected={(id, name, code) => navigate(`/${code}`)} 
+            <SprintSelection
+                user={appUser}
+                onSprintSelected={(id, name, code) => navigate(`/${code}`)}
                 onCancel={undefined}
             />
-        ) : <Navigate to="/auth/login" state={{ from: location }} replace />
+        ) : <LandingPage />
       } />
       <Route path="/:code" element={
         session ? (
