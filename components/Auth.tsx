@@ -141,14 +141,16 @@ export const Auth: React.FC = () => {
     <div className="min-h-screen bg-white flex flex-col">
 
       {/* Header */}
-      <header className="border-b border-n40 h-14 flex items-center px-6">
-        <a href="/" className="flex items-center gap-2">
-          <picture>
-            <source srcSet="/logo-auth.svg" type="image/svg+xml" />
-            <img src="/logo-auth-40.png" alt="Retro14" className="w-6 h-6" />
-          </picture>
-          <span className="font-bold text-sm text-n800">Retro14</span>
-        </a>
+      <header className="border-b border-n40 h-14">
+        <div className="max-w-5xl mx-auto px-6 h-full flex items-center">
+          <a href="/" className="flex items-center gap-2">
+            <picture>
+              <source srcSet="/logo-auth.svg" type="image/svg+xml" />
+              <img src="/logo-auth-40.png" alt="Retro14" className="w-6 h-6" />
+            </picture>
+            <span className="font-bold text-sm text-n800">Retro14</span>
+          </a>
+        </div>
       </header>
 
       {/* Form */}
