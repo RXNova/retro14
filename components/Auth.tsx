@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Loader2, ArrowRight, Lock, Mail, AlertTriangle, Check, ArrowLeft, Zap, Users, MessageSquare } from 'lucide-react';
+import { Loader2, ArrowRight, Lock, Mail, AlertTriangle, Check, ArrowLeft, Users } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 type AuthView = 'login' | 'magic_link' | 'reset_password';
@@ -138,81 +138,22 @@ export const Auth: React.FC = () => {
   const isAuthView = view === 'login';
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-n10 justify-center">
-      
-      {/* Left Panel: Catchy Content */}
-      <div className="hidden lg:flex w-full lg:w-1/2 bg-n800 text-white p-12 flex-col justify-between relative overflow-hidden">
-        {/* Background Pattern Hint */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-b400 rounded-full opacity-10 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-p400 rounded-full opacity-10 blur-3xl"></div>
+    <div className="min-h-screen bg-white flex flex-col">
 
-        <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-                <picture>
-                  <source srcSet="/logo-auth.svg" type="image/svg+xml" />
-                  <img src="/logo-auth-40.png" alt="Retro14" className="w-8 h-8" />
-                </picture>
-                <span className="font-bold text-xl tracking-tight">Retro14</span>
-            </div>
-        </div>
+      {/* Header */}
+      <header className="border-b border-n40 h-14 flex items-center px-6">
+        <a href="/" className="flex items-center gap-2">
+          <picture>
+            <source srcSet="/logo-auth.svg" type="image/svg+xml" />
+            <img src="/logo-auth-40.png" alt="Retro14" className="w-6 h-6" />
+          </picture>
+          <span className="font-bold text-sm text-n800">Retro14</span>
+        </a>
+      </header>
 
-        <div className="relative z-10 max-w-md">
-            <h1 className="text-4xl font-bold mb-6 tracking-tight leading-tight">
-                Transform Your <br/>
-                <span className="text-b300">Sprint Retrospectives</span>
-            </h1>
-            <p className="text-n200 text-lg mb-8 leading-relaxed">
-                Connect, collaborate, and improve with your team in real-time. 
-                Say goodbye to chaotic feedback and hello to actionable insights.
-            </p>
-
-            <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                    <div className="p-2 bg-n700 rounded-[3px] text-b300">
-                        <Zap size={20} />
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-n50">Real-time Collaboration</h3>
-                        <p className="text-sm text-n300">See updates instantly as your team votes and discusses.</p>
-                    </div>
-                </div>
-                <div className="flex items-start gap-4">
-                    <div className="p-2 bg-n700 rounded-[3px] text-g300">
-                        <Users size={20} />
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-n50">Team-Centric</h3>
-                        <p className="text-sm text-n300">Designed for agile teams to foster open communication.</p>
-                    </div>
-                </div>
-                <div className="flex items-start gap-4">
-                    <div className="p-2 bg-n700 rounded-[3px] text-p300">
-                        <MessageSquare size={20} />
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-n50">Actionable Feedback</h3>
-                        <p className="text-sm text-n300">Turn discussions into trackable action items immediately.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div className="relative z-10 text-xs text-n400">
-            &copy; {new Date().getFullYear()} Retro14 Inc.
-        </div>
-      </div>
-
-      {/* Right Panel: Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 relative">
-          <div className="w-full max-w-md bg-white p-8 rounded-[3px] shadow-sm border border-n40">
-            {/* Mobile Header (only visible on small screens) */}
-            <div className="lg:hidden text-center mb-8">
-                 <picture>
-                   <source srcSet="/logo-auth.svg" type="image/svg+xml" />
-                   <img src="/logo-auth-40.png" alt="Retro14" className="w-10 h-10 mx-auto mb-2" />
-                 </picture>
-                 <h2 className="text-xl font-bold text-n800">Retro14</h2>
-            </div>
+      {/* Form */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-sm">
 
             <h2 className="text-xl font-semibold text-n800 mb-2">
                 {isAuthView 
@@ -425,7 +366,7 @@ export const Auth: React.FC = () => {
                 </div> 
             )}
 
-          </div>
+        </div>
       </div>
     </div>
   );
