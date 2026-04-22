@@ -870,6 +870,15 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
   };
 
   const handleLowerAllHands = async () => {
+    // Optimistically update all participants
+    setParticipants((prev) =>
+      prev.map((p) => ({
+        ...p,
+        isHandRaised: false,
+        handRaisedAt: undefined,
+      })),
+    );
+
     // Broadcast for immediate speed
     if (channelRef.current) {
       channelRef.current.send({
