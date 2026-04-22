@@ -80,6 +80,9 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     return false;
   });
 
+  // Team Emojis State
+  const [activeTeamEmojis, setActiveTeamEmojis] = useState<Array<{ id: string; emoji: string }>>([]);
+
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   const refreshData = async () => {
@@ -197,6 +200,11 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
           isHandRaised: false,
           handRaisedAt: undefined,
         }));
+      });
+
+      channel.on("broadcast", { event: "team_emoji" }, ({ payload }) => {
+        const id = Math.random().toString(36).slice(2, 11);
+        setActiveTeamEmojis((prev) => [...prev, { id, emoji: payload.emoji }]);
       });
 
       // Presence Setup
@@ -469,7 +477,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
 
   const handleAddActionItem = async (itemId: string, text: string) => {
     const newAction: RetroActionItem = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).slice(2, 11),
       text,
       isCompleted: false,
     };
@@ -504,7 +512,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
 
   const handleAddComment = async (itemId: string, text: string) => {
     const newComment: RetroComment = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).slice(2, 11),
       text,
       author_name: currentUser.name,
       author_color: currentUser.color,
@@ -889,7 +897,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     }
 
     // Lower all hands via database (broadcasts to all users via Realtime)
-    await dataService.lowerAllHands();
+    await dataService.lowerAllHands(sprintId);
 
     // Also update local state immediately for responsiveness
     setCurrentUser((prev) => ({
@@ -897,6 +905,23 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
       isHandRaised: false,
       handRaisedAt: undefined,
     }));
+  };
+
+  const handleSendTeamEmoji = (emoji: string) => {
+    const id = Math.random().toString(36).slice(2, 11);
+    setActiveTeamEmojis((prev) => [...prev, { id, emoji }]);
+
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: "broadcast",
+        event: "team_emoji",
+        payload: { emoji },
+      });
+    }
+  };
+
+  const handleRemoveTeamEmoji = (id: string) => {
+    setActiveTeamEmojis((prev) => prev.filter((e) => e.id !== id));
   };
 
   const handleUpdateProfile = async (updatedUser: User) => {
@@ -1075,5 +1100,8 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     handleColumnUpdate,
     handleToggleColumnVisibility,
     handleDeleteItem,
+    activeTeamEmojis,
+    handleSendTeamEmoji,
+    handleRemoveTeamEmoji,
   };
 };

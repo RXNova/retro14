@@ -8,10 +8,14 @@ interface UserFooterProps {
   participants: User[];
   onRaiseHand: () => void;
   onLowerAllHands: () => void;
+  onSendTeamEmoji: (emoji: string) => void;
 }
 
-export const UserFooter: React.FC<UserFooterProps> = ({ currentUser, participants, onRaiseHand, onLowerAllHands }) => {
+const EMOJIS = ['👍', '❤️', '🔥', '😂', '😢'];
+
+export const UserFooter: React.FC<UserFooterProps> = ({ currentUser, participants, onRaiseHand, onLowerAllHands, onSendTeamEmoji }) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   // Sort: Hand raised first (by time), then others
   const sortedParticipants = [...participants].sort((a, b) => {
@@ -52,14 +56,38 @@ export const UserFooter: React.FC<UserFooterProps> = ({ currentUser, participant
            </div>
         </div>
 
-        <div className="pl-4 border-l border-[#DFE1E6] ml-4 flex items-center gap-2">
-            <button 
+        <div className="pl-4 border-l border-[#DFE1E6] ml-4 flex items-center gap-2 relative">
+            <div className="relative">
+              <button
+                onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+                className="text-xs font-bold text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] px-3 py-2 rounded-lg transition-colors"
+              >
+                Reactions
+              </button>
+              {isEmojiPickerOpen && (
+                <div className="absolute bottom-full right-0 bg-white shadow-lg rounded-lg border border-[#DFE1E6] p-2 flex gap-1 mb-2 animate-in zoom-in-95 duration-150 z-20">
+                  {EMOJIS.map(emoji => (
+                    <button
+                      key={emoji}
+                      onClick={() => {
+                        onSendTeamEmoji(emoji);
+                        setIsEmojiPickerOpen(false);
+                      }}
+                      className="w-8 h-8 flex items-center justify-center text-lg hover:bg-[#F4F5F7] rounded transition-transform hover:scale-125"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
                 onClick={() => setIsConfirmOpen(true)}
                 className="text-xs font-bold text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] px-3 py-2 rounded-lg transition-colors"
             >
                 Lower all Hands
             </button>
-            <button 
+            <button
                 onClick={onRaiseHand}
                 className={`flex items-center gap-2 px-3 py-1 rounded font-bold text-xs transition-all transform active:scale-95 ${currentUser.isHandRaised ? 'bg-[#FF5630] text-white hover:bg-[#DE350B]' : 'bg-[#0052CC] text-white hover:bg-[#0747A6]'}`}
             >
