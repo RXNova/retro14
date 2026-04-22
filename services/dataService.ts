@@ -95,7 +95,7 @@ export const dataService = {
   ): RealtimeChannel | null {
     if (!isSupabaseConfigured || !supabase) return null;
 
-    const channel = supabase
+    return supabase
       .channel(`sprint:${sprintId}`)
       .on(
         "postgres_changes",
@@ -117,16 +117,6 @@ export const dataService = {
         },
         (payload) => onUpdate(payload),
       );
-
-    channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        console.log(`Subscribed to sprint ${sprintId}`);
-      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-        console.error(`Failed to subscribe to sprint ${sprintId}`);
-      }
-    });
-
-    return channel;
   },
 
   async fetchSprintConfig(sprintId: string): Promise<SprintConfig | null> {
