@@ -208,41 +208,42 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
       });
 
       // Presence Setup
-      channel
-        .on("presence", { event: "sync" }, () => {
-          const state = channel.presenceState();
-          const onlineUsers = Object.values(state)
-            .flat()
-            .map((p: any) => p.user) as User[];
+      channel.on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        const onlineUsers = Object.values(state)
+          .flat()
+          .map((p: any) => p.user) as User[];
 
-          setParticipants((prev) => {
-            // Combine DB participants with online status from Presence
-            const onlineMap = new Map(onlineUsers.map((u) => [u.id, u]));
+        setParticipants((prev) => {
+          // Combine DB participants with online status from Presence
+          const onlineMap = new Map(onlineUsers.map((u) => [u.id, u]));
 
-            const updated = prev.map((p) => {
-              const onlineUser = onlineMap.get(p.id);
-              if (onlineUser) {
-                // Prefer state from Presence (more immediate)
-                return { ...p, ...onlineUser };
-              }
-              return p;
-            });
-
-            // Add any online users who aren't in the DB list yet (joining in real-time)
-            onlineUsers.forEach((u) => {
-              if (!updated.some((p) => p.id === u.id)) {
-                updated.push(u);
-              }
-            });
-
-            return updated;
+          const updated = prev.map((p) => {
+            const onlineUser = onlineMap.get(p.id);
+            if (onlineUser) {
+              // Prefer state from Presence (more immediate)
+              return { ...p, ...onlineUser };
+            }
+            return p;
           });
-        })
-        .subscribe(async (status) => {
-          if (status === "SUBSCRIBED") {
-            await channel.track({ user: currentUser });
-          }
+
+          // Add any online users who aren't in the DB list yet (joining in real-time)
+          onlineUsers.forEach((u) => {
+            if (!updated.some((p) => p.id === u.id)) {
+              updated.push(u);
+            }
+          });
+
+          return updated;
         });
+      });
+
+      // Subscribe after all listeners are added
+      channel.subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ user: currentUser });
+        }
+      });
     }
 
     return () => {
