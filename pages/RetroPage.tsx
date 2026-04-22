@@ -11,6 +11,7 @@ import { VotingConfigDialog } from '../components/VotingConfigDialog';
 import { Timer } from '../components/Timer';
 import { TimesUpOverlay } from '../components/TimesUpOverlay';
 import { UserFooter } from '../components/UserFooter';
+import { FloatingEmoji } from '../components/FloatingEmoji';
 import { TeamModal } from '../components/TeamModal';
 import { HistoryModal } from '../components/HistoryModal';
 import { Share2, Vote, X, AlertTriangle, Eye, ChevronDown, Settings, Layers, ArrowDownAZ, EyeOff, Check, Download } from 'lucide-react';
@@ -76,7 +77,10 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
         handleResumeTimer,
         handleResetTimer,
         timer,
-        remainingTime
+        remainingTime,
+        activeTeamEmojis,
+        handleSendTeamEmoji,
+        handleRemoveTeamEmoji
     } = useRetroBoard(user, sprintId);
 
     const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
@@ -139,6 +143,14 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
   return (
     <div className="flex h-screen w-full bg-n10 overflow-hidden">
             {showTimesUp && <TimesUpOverlay onDismiss={() => setShowTimesUp(false)} />}
+            {activeTeamEmojis.map(emoji => (
+              <FloatingEmoji
+                key={emoji.id}
+                id={emoji.id}
+                emoji={emoji.emoji}
+                onComplete={handleRemoveTeamEmoji}
+              />
+            ))}
             <div ref={sidebarRef}>
               <Sidebar 
                   collapsed={sidebarCollapsed} 
@@ -338,11 +350,12 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
             </div>
         </main>
 
-        <UserFooter 
+        <UserFooter
             currentUser={currentUser}
             participants={participants}
             onRaiseHand={handleRaiseHand}
             onLowerAllHands={handleLowerAllHands}
+            onSendTeamEmoji={handleSendTeamEmoji}
         />
       </div>
 

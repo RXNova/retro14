@@ -95,7 +95,7 @@ export const dataService = {
   ): RealtimeChannel | null {
     if (!isSupabaseConfigured || !supabase) return null;
 
-    return supabase
+    const channel = supabase
       .channel(`sprint:${sprintId}`)
       .on(
         "postgres_changes",
@@ -117,6 +117,16 @@ export const dataService = {
         },
         (payload) => onUpdate(payload),
       );
+
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log(`Subscribed to sprint ${sprintId}`);
+      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+        console.error(`Failed to subscribe to sprint ${sprintId}`);
+      }
+    });
+
+    return channel;
   },
 
   async fetchSprintConfig(sprintId: string): Promise<SprintConfig | null> {
@@ -819,16 +829,36 @@ export const dataService = {
     }
   },
 
-  async lowerAllHands(): Promise<void> {
+  async lowerAllHands(sprintId?: string): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-      // Lower all hands for all users
-      await supabase
-        .from("retro_users")
-        .update({
-          is_hand_raised: false,
-          hand_raised_at: null,
-        })
-        .neq("id", "00000000-0000-0000-0000-000000000000"); // Update all (dummy condition)
+      if (sprintId) {
+        // Get all participants in this sprint, then update their hands
+        const { data: participants } = await supabase
+          .from("sprint_participants")
+          .select("user_id")
+          .eq("sprint_id", sprintId);
+
+        if (participants && participants.length > 0) {
+          const userIds = participants.map((p: any) => p.user_id);
+          await supabase
+            .from("retro_users")
+            .update({
+              is_hand_raised: false,
+              hand_raised_at: null,
+            })
+            .in("id", userIds);
+        }
+      } else {
+        // Fallback: update all users globally
+        await supabase
+          .from("retro_users")
+          .update({
+            is_hand_raised: false,
+            hand_raised_at: null,
+          })
+          .is("id", null)
+          .or("id.neq.null");
+      }
     }
   },
 
