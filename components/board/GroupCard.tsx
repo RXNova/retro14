@@ -135,7 +135,7 @@ export const GroupCard: React.FC<GroupCardProps> = ({
                  <div className={`
                     relative w-full h-[150px] bg-white rounded-[3px] shadow-sm border
                     ${isTargeted ? 'border-[#4C9AFF] ring-2 ring-[#4C9AFF] animate-pulse z-10' : 'border-[#DFE1E6]'}
-                    cursor-pointer hover:shadow-md transition-all flex flex-col overflow-hidden group
+                    cursor-pointer hover:shadow-md transition-all flex flex-col overflow-visible group
                  `}>
                      {/* Multi-Color Header Bar */}
                      <div className="flex w-full h-1.5 shrink-0">
