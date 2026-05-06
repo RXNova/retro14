@@ -14,6 +14,7 @@ import { UserFooter } from '../components/UserFooter';
 import { FloatingEmoji } from '../components/FloatingEmoji';
 import { TeamModal } from '../components/TeamModal';
 import { HistoryModal } from '../components/HistoryModal';
+import { Snackbar } from '../components/Snackbar';
 import { Share2, Vote, X, AlertTriangle, Eye, ChevronDown, Settings, Layers, ArrowDownAZ, EyeOff, Check, Download } from 'lucide-react';
 import { ExportModal } from '../components/ExportModal';
 import { useRetroBoard } from '../hooks/useRetroBoard';
@@ -53,6 +54,9 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
         isCardOverviewEnabled, setIsCardOverviewEnabled,
         permissions, setPermissions,
         isLoading,
+        snackbarMessage,
+        showSnackbar,
+        setShowSnackbar,
         refreshData,
         handleStartVoting,
         confirmEndVoting,
@@ -61,6 +65,7 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
         handleToggleActionItem,
         handleAddComment,
         handleUpdateItemContent,
+        handleToggleIncognito,
         handleMoveItem,
         handleGroupItem,
         handleAddItem,
@@ -338,6 +343,7 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
                     onToggleActionItem={handleToggleActionItem}
                     onAddComment={handleAddComment}
                     onUpdateItemContent={handleUpdateItemContent}
+                    onToggleIncognito={handleToggleIncognito}
                     onDelete={handleDeleteItem}
                     permissions={permissions}
                     
@@ -525,6 +531,11 @@ export const RetroPage: React.FC<RetroPageProps> = ({ user, sprintId, sprintName
         );
       })()}
 
+      <Snackbar
+        message={snackbarMessage}
+        isVisible={showSnackbar}
+        onClose={() => setShowSnackbar(false)}
+      />
     </div>
   );
 };

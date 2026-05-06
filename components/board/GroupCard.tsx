@@ -42,7 +42,9 @@ export const GroupCard: React.FC<GroupCardProps> = ({
     const visibleChildren = childrenItems.filter(c => !hiddenAuthors.has(c.author_name || ''));
     if (visibleChildren.length === 0 && hiddenAuthors.size > 0) return null;
 
-    const authors = getUniqueAuthors(visibleChildren);
+    const nonIncognitoChildren = visibleChildren.filter(c => !c.is_incognito);
+    const incognitoCount = visibleChildren.filter(c => c.is_incognito).length;
+    const authors = getUniqueAuthors(nonIncognitoChildren);
     const authorNames = authors.map(a => a.name).join(', ');
 
     // Footer used for the Expanded view only
@@ -50,9 +52,9 @@ export const GroupCard: React.FC<GroupCardProps> = ({
         <div className="min-h-[32px] flex items-center justify-between px-2 pb-2 bg-white/50 rounded-b-[3px] shrink-0 mt-auto border-t border-[#DFE1E6]/50 pt-1 gap-2">
             <div className="flex -space-x-1.5 shrink-0">
                 {authors.slice(0, 3).map((a, i) => (
-                    <div 
-                        key={i} 
-                        className="w-4 h-4 rounded-full border border-white text-[8px] flex items-center justify-center text-white font-bold shadow-sm" 
+                    <div
+                        key={i}
+                        className="w-4 h-4 rounded-full border border-white text-[8px] flex items-center justify-center text-white font-bold shadow-sm"
                         style={{backgroundColor: a.color}}
                         title={a.name}
                     >
@@ -63,6 +65,14 @@ export const GroupCard: React.FC<GroupCardProps> = ({
                     <div className="w-4 h-4 rounded-full border border-white bg-gray-100 text-[8px] flex items-center justify-center text-gray-500 font-bold shadow-sm">
                         +{authors.length - 3}
                     </div>
+                )}
+                {incognitoCount > 0 && (
+                    <img
+                        src="/icons/anonymous.svg"
+                        alt={`${incognitoCount} anonymous`}
+                        className="w-4 h-4 rounded-full border border-white shadow-sm"
+                        title={`${incognitoCount} anonymous`}
+                    />
                 )}
             </div>
 

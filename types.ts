@@ -36,6 +36,7 @@ export interface RetroItem {
   parent_id?: string | null; // For grouping items
   type?: "card" | "group";
   sprint_id?: string;
+  is_incognito?: boolean;
 }
 
 export interface Column {

@@ -83,6 +83,10 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
   // Team Emojis State
   const [activeTeamEmojis, setActiveTeamEmojis] = useState<Array<{ id: string; emoji: string }>>([]);
 
+  // Snackbar State
+  const [snackbarMessage, setSnackbarMessage] = useState<string>('');
+  const [showSnackbar, setShowSnackbar] = useState(false);
+
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   const refreshData = async () => {
@@ -476,6 +480,41 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     await dataService.updateItemContent(itemId, newContent);
   };
 
+  const handleToggleIncognito = async (itemId: string) => {
+    // Find the item to determine new incognito state
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    const isToggleToIncognito = !item.is_incognito;
+    const message = isToggleToIncognito ? 'Card made anonymous' : 'Card anonymity removed';
+
+    // Optimistic Update
+    setItems((prev) =>
+      prev.map((i) => {
+        if (i.id === itemId) {
+          return {
+            ...i,
+            is_incognito: isToggleToIncognito,
+            author_name: isToggleToIncognito ? undefined : currentUser.name,
+            author_role: isToggleToIncognito ? undefined : currentUser.role,
+            author_color: isToggleToIncognito ? undefined : currentUser.color,
+          };
+        }
+        return i;
+      }),
+    );
+
+    // Persist to database
+    await dataService.updateItemIncognito(itemId, isToggleToIncognito, !isToggleToIncognito ? currentUser : undefined);
+
+    // Close old snackbar and show new one
+    setShowSnackbar(false);
+    setTimeout(() => {
+      setSnackbarMessage(message);
+      setShowSnackbar(true);
+    }, 100);
+  };
+
   const handleAddActionItem = async (itemId: string, text: string) => {
     const newAction: RetroActionItem = {
       id: Math.random().toString(36).slice(2, 11),
@@ -770,6 +809,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     content: string,
     columnId: string,
     isStaged: boolean = true,
+    isIncognito: boolean = false,
   ) => {
     // Optimistic Add
     const tempItem: RetroItem = {
@@ -781,10 +821,11 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
       votes: {},
       actionItems: [],
       created_at: new Date().toISOString(),
-      author_name: currentUser.name,
-      author_role: currentUser.role,
-      author_color: currentUser.color,
+      author_name: isIncognito ? undefined : currentUser.name,
+      author_role: isIncognito ? undefined : currentUser.role,
+      author_color: isIncognito ? undefined : currentUser.color,
       is_staged: isStaged,
+      is_incognito: isIncognito,
       parent_id: null,
       type: "card",
     };
@@ -797,6 +838,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
       currentUser,
       sprintId,
       isStaged,
+      isIncognito,
     );
 
     // Replace temp with real
@@ -968,6 +1010,13 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
       await dataService.deleteItem(itemId);
       // Optimistically remove from local state
       setItems((prev) => prev.filter((i) => i.id !== itemId));
+
+      // Show snackbar notification
+      setShowSnackbar(false);
+      setTimeout(() => {
+        setSnackbarMessage('Card deleted');
+        setShowSnackbar(true);
+      }, 100);
     } catch (error) {
       console.error("Error deleting item:", error);
     }
@@ -1090,6 +1139,7 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     remainingTime,
     handleAddComment,
     handleUpdateItemContent,
+    handleToggleIncognito,
     handleMoveItem,
     handleGroupItem,
     handleAddItem,
@@ -1104,5 +1154,8 @@ export const useRetroBoard = (user: User | undefined, sprintId: string) => {
     activeTeamEmojis,
     handleSendTeamEmoji,
     handleRemoveTeamEmoji,
+    snackbarMessage,
+    showSnackbar,
+    setShowSnackbar,
   };
 };

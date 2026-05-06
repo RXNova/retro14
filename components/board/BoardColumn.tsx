@@ -31,7 +31,7 @@ interface BoardColumnProps {
     activeInputColumnId?: string | null;
     onToggleMaximize: (columnId: string) => void;
     onMoveItem: (itemId: string, newStatus: string, isStaged?: boolean) => void;
-    onAddItem: (content: string, columnId: string, isStaged?: boolean) => void;
+    onAddItem: (content: string, columnId: string, isStaged?: boolean, isIncognito?: boolean) => void;
     onPublishAll: (columnId: string) => void;
     onEditColumn: (columnId: string) => void;
     onToggleSort: (columnId: string) => void;
@@ -46,6 +46,7 @@ interface BoardColumnProps {
     onToggleActionItem: (itemId: string, actionId: string) => void;
     onAddComment: (itemId: string, text: string) => void;
     onUpdateItemContent: (itemId: string, content: string) => void;
+    onToggleIncognito: (itemId: string) => void;
     onDelete: (itemId: string) => void;
     permissions: PermissionSettings;
     onHideColumn: (columnId: string) => void;
@@ -64,7 +65,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     dragOverTargetId, draggedItemId, expandedGroups, isMaximized, isLoading, activeInputColumnId, onToggleMaximize,
     onAddItem, onPublishAll, onEditColumn, onToggleSort, onToggleGroupByAuthor, onToggleAuthorFilter,
     onVote, onReaction, onItemClick, onToggleGroup,
-    onAddActionItem, onToggleActionItem, onAddComment, onUpdateItemContent, onDelete, permissions, onHideColumn, onInputActive,
+    onAddActionItem, onToggleActionItem, onAddComment, onUpdateItemContent, onToggleIncognito, onDelete, permissions, onHideColumn, onInputActive,
     dragHandlers, globalViewConfig, isCardOverviewEnabled
 }) => {
     const isActionList = column.viewMode === 'action-list';
@@ -74,6 +75,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     const [isSortedByVotes, setIsSortedByVotes] = useState(isActionList);
     const [newItemText, setNewItemText] = useState('');
     const [isAdding, setIsAdding] = useState(false);
+    const [isIncognito, setIsIncognito] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // Theme logic
@@ -129,8 +131,9 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
     const handleAddItemSubmit = () => {
         if (newItemText.trim()) {
-            onAddItem(newItemText, column.id, true);
+            onAddItem(newItemText, column.id, true, isIncognito);
             setNewItemText('');
+            setIsIncognito(false);
             // Keep input open for rapid entry like Jira
             if (textareaRef.current) {
                 textareaRef.current.focus();
@@ -138,6 +141,24 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         } else {
             setIsAdding(false);
         }
+    };
+
+    /**
+     * Renders a staged item card with incognito toggle button.
+     */
+    const renderStagedItem = (item: RetroItem) => {
+        return (
+            <div key={item.id} className="relative group/staged">
+                {renderItem(item)}
+                <button
+                    onClick={(e) => { e.stopPropagation(); onToggleIncognito(item.id); }}
+                    className="absolute top-2 right-2 z-20 opacity-0 group-hover/staged:opacity-100 transition-opacity flex items-center justify-center w-7 h-7 rounded-full bg-white hover:bg-n30 shadow-sm"
+                    title={item.is_incognito ? "Disable incognito" : "Enable incognito"}
+                >
+                    <img src="/icons/anonymous.svg" alt="incognito" className="w-4 h-4" style={{ filter: 'brightness(0) saturate(0)' }} />
+                </button>
+            </div>
+        );
     };
 
     /**
@@ -219,8 +240,13 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     const renderGroupedByAuthor = (itemsToRender: RetroItem[]) => {
         const itemsByAuthor: Record<string, RetroItem[]> = {};
         const otherItems: RetroItem[] = [];
+        const incognitoItems: RetroItem[] = [];
 
         itemsToRender.forEach(item => {
+            if (item.is_incognito) {
+                incognitoItems.push(item);
+                return;
+            }
             const author = item.type === 'group' ? (getUniqueAuthors(allItems.filter(i => i.parent_id === item.id))[0]?.name || 'Mixed') : item.author_name;
             if (author) {
                 if (!itemsByAuthor[author]) itemsByAuthor[author] = [];
@@ -263,7 +289,19 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                         </div>
                     </div>
                 ))}
-                {groups.length === 0 && (
+                {incognitoItems.length > 0 && (
+                    <div className="flex flex-col gap-2 p-2 rounded bg-white/50 border border-n40/60">
+                        <div className="flex items-center gap-2 mb-1">
+                            <img src="/icons/anonymous.svg" alt="anonymous" className="w-4 h-4" />
+                            <span className="text-xs font-bold text-n800">Anonymous</span>
+                            <div className="h-px bg-n40 flex-1"></div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {incognitoItems.map(renderItem)}
+                        </div>
+                    </div>
+                )}
+                {groups.length === 0 && incognitoItems.length === 0 && (
                     <EmptyState />
                 )}
             </div>
@@ -460,7 +498,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                                      renderGroupedByAuthor(stagedItems)
                                  ) : (
                                      <div className="flex flex-wrap content-start gap-2">
-                                         {stagedItems.map(renderItem)}
+                                         {stagedItems.map(renderStagedItem)}
                                      </div>
                                  )
                              ) : (
@@ -474,29 +512,52 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                     {/* Quick Create Footer */}
                     <div className="p-2">
                         {isAdding ? (
-                            <div className="w-full bg-white p-2 rounded-[3px] shadow-md border-2 border-[#4C9AFF] animate-in fade-in zoom-in-95 duration-200">
+                            <div className={`w-full p-2 rounded-[3px] shadow-md border-2 animate-in fade-in zoom-in-95 duration-200 transition-colors ${
+                                isIncognito
+                                    ? 'bg-white border-black'
+                                    : 'bg-white border-[#4C9AFF]'
+                            }`}>
+                                {isIncognito && (
+                                    <div className="flex items-center gap-1 mb-2 pb-2 border-b border-black">
+                                        <img src="/icons/anonymous.svg" alt="incognito" className="w-3 h-3" />
+                                        <span className="text-[10px] font-bold text-black uppercase">Anonymous</span>
+                                    </div>
+                                )}
                                 <textarea
                                     ref={textareaRef}
-                                    placeholder="What's on your mind?"
-                                    className="w-full text-sm resize-none outline-none text-[#172B4D] placeholder:text-[#97A0AF] min-h-[40px]"
-                                    rows={1}
-                                    value={newItemText}
-                                    onChange={(e) => {
-                                        setNewItemText(e.target.value);
-                                        e.target.style.height = 'auto';
-                                        e.target.style.height = e.target.scrollHeight + 'px';
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) { 
-                                            e.preventDefault(); 
-                                            handleAddItemSubmit(); 
-                                        }
-                                        if (e.key === 'Escape') setIsAdding(false);
-                                    }}
-                                />
-                                <div className="flex justify-end gap-2 mt-2">
-                                    <button onClick={() => setIsAdding(false)} className="px-2 py-1 rounded-[3px] text-xs font-bold text-[#42526E] hover:bg-[#EBECF0]">Cancel</button>
-                                    <button onClick={handleAddItemSubmit} className="px-3 py-1 rounded-[3px] text-xs font-bold text-white bg-[#0052CC] hover:bg-[#0747A6]">Add</button>
+                                    placeholder={isIncognito ? "Post anonymously..." : "What's on your mind?"}
+                                    className={`w-full text-sm resize-none outline-none min-h-[40px] rounded-[3px] p-2 ${
+                                        isIncognito
+                                            ? 'bg-white text-[#172B4D] placeholder:text-[#97A0AF] border-0'
+                                            : 'bg-transparent text-[#172B4D] placeholder:text-[#97A0AF]'
+                                    }`}
+                                        rows={1}
+                                        value={newItemText}
+                                        onChange={(e) => {
+                                            setNewItemText(e.target.value);
+                                            e.target.style.height = 'auto';
+                                            e.target.style.height = e.target.scrollHeight + 'px';
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleAddItemSubmit();
+                                            }
+                                            if (e.key === 'Escape') setIsAdding(false);
+                                        }}
+                                    />
+                                <div className="flex justify-between items-center gap-2 mt-2">
+                                    <button
+                                        onClick={() => setIsIncognito(!isIncognito)}
+                                        className="flex items-center justify-center transition-opacity hover:opacity-75"
+                                        title={isIncognito ? "Posting as anonymous" : "Post anonymously"}
+                                    >
+                                        <img src="/icons/anonymous.svg" alt="incognito" className="w-5 h-5" style={{ filter: isIncognito ? 'invert(1)' : 'brightness(0.5)' }} />
+                                    </button>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setIsAdding(false)} className="px-2 py-1 rounded-[3px] text-xs font-bold text-[#42526E] hover:bg-[#EBECF0]">Cancel</button>
+                                        <button onClick={handleAddItemSubmit} className="px-3 py-1 rounded-[3px] text-xs font-bold text-white bg-[#0052CC] hover:bg-[#0747A6]">Add</button>
+                                    </div>
                                 </div>
                             </div>
                         ) : (

@@ -12,7 +12,7 @@ interface BoardProps {
   sortedParticipants: User[];
   onMoveItem: (itemId: string, newStatus: string, isStaged?: boolean, index?: number) => void;
   onItemClick: (item: RetroItem) => void;
-  onAddItem: (content: string, columnId: string, isStaged?: boolean) => void;
+  onAddItem: (content: string, columnId: string, isStaged?: boolean, isIncognito?: boolean) => void;
   onPublishAll: (columnId: string) => void;
   onReaction: (itemId: string, emoji: string) => void;
   onGroupItem: (itemId: string, targetId: string) => void;
@@ -27,6 +27,7 @@ interface BoardProps {
   onToggleActionItem: (itemId: string, actionId: string) => void;
   onAddComment: (itemId: string, text: string) => void;
   onUpdateItemContent: (itemId: string, content: string) => void;
+  onToggleIncognito: (itemId: string) => void;
   onDelete: (itemId: string) => void;
   permissions: PermissionSettings;
   // Visibility State
@@ -48,7 +49,7 @@ export const Board: React.FC<BoardProps> = ({
     columns, items, currentUser, sortedParticipants,
     onMoveItem, onItemClick, onAddItem, onPublishAll, onReaction, onGroupItem, onEditColumn,
     isVotingActive, votingConfig, userVotesUsed, onVote,
-    onAddActionItem, onToggleActionItem, onAddComment, onUpdateItemContent, onDelete, permissions,
+    onAddActionItem, onToggleActionItem, onAddComment, onUpdateItemContent, onToggleIncognito, onDelete, permissions,
     hiddenColumnIds, onToggleColumnVisibility,
     viewConfig, isCardOverviewEnabled, isLoading
 }) => {
@@ -203,6 +204,7 @@ export const Board: React.FC<BoardProps> = ({
             onToggleActionItem={onToggleActionItem}
             onAddComment={onAddComment}
             onUpdateItemContent={onUpdateItemContent}
+            onToggleIncognito={onToggleIncognito}
             onDelete={onDelete}
             permissions={permissions}
             onHideColumn={onToggleColumnVisibility}

@@ -104,24 +104,25 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                 onDragLeave={() => dragHandlers.setDragOverTargetId(null)}
                 onDrop={(e) => dragHandlers.handleCardDrop(e, item.id)}
                 className={`
-                    relative bg-white rounded-[3px] shadow-sm border
-                    ${isTargeted ? 'border-b200 ring-2 ring-b200 ring-offset-1 animate-pulse z-10' : 'border-n40'}
-                    ${isEditing ? 'ring-2 ring-b200 border-b200 cursor-text' : 'cursor-pointer hover:shadow-md'}
+                    relative rounded-[3px] shadow-sm border transition-all
+                    bg-white border-n40
+                    ${isTargeted ? 'ring-2 ring-offset-1 animate-pulse z-10 ring-b200 border-b200' : ''}
+                    ${isEditing ? 'ring-2 cursor-text ring-b200 border-b200' : 'cursor-pointer hover:shadow-md'}
                     h-[150px] w-full
-                    group transition-all flex flex-col
+                    group flex flex-col
                     ${draggedItemId === item.id ? 'opacity-40 rotate-2 scale-95' : ''}
                 `}
             >
-                {/* Author Color Strip */}
-                <div className="h-1.5 w-full rounded-t-[3px] shrink-0" style={{ backgroundColor: item.author_color || colors.n40 }}></div>
+                {/* Incognito Indicator / Author Color Strip */}
+                <div className="h-1.5 w-full rounded-t-[3px] shrink-0" style={{ backgroundColor: item.is_incognito ? '#000000' : (item.author_color || colors.n40) }}></div>
                 
                 {/* Controls Overlay - Edit/Delete (Top-Left) */}
                 {!isEditing && (
                     <div className="absolute top-2 left-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
                          {isCardOverviewEnabled ? (
-                             <button 
+                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-                                className="flex items-center justify-center w-7 h-7 rounded-full bg-n20 hover:bg-n30 border border-n40 text-n300 hover:text-b400 transition-colors shadow-sm"
+                                className="flex items-center justify-center w-7 h-7 rounded-full bg-white hover:bg-n30 text-n300 hover:text-b400 transition-colors shadow-sm"
                                 title="Quick Edit"
                              >
                                  <Pencil size={14} />
@@ -129,9 +130,9 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                          ) : (
                              /* Show delete button when overview is disabled (if user has permission) */
                              (item.user_id === currentUser.id || permissions.canDeleteOthersCards) && (
-                                 <button 
+                                 <button
                                     onClick={(e) => { e.stopPropagation(); setIsConfirmingDelete(true); }}
-                                    className="flex items-center justify-center w-7 h-7 rounded-full bg-n20 hover:bg-red-50 border border-n40 text-n300 hover:text-red-600 transition-colors shadow-sm"
+                                    className="flex items-center justify-center w-7 h-7 rounded-full bg-white hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors shadow-sm"
                                     title="Delete Card"
                                  >
                                      <Trash2 size={14} />
@@ -207,7 +208,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                             className="w-full h-full text-xs font-medium leading-snug text-center resize-none outline-none bg-transparent"
                         />
                     ) : (
-                        <p className={`text-n800 text-xs font-medium leading-snug text-center line-clamp-4 ${item.is_staged ? 'italic' : ''}`}>
+                        <p className={`text-xs font-medium leading-snug text-center line-clamp-4 ${item.is_incognito ? 'text-n900 font-bold' : 'text-n800'} ${item.is_staged ? 'italic' : ''}`}>
                             {item.content}
                         </p>
                     )}
@@ -215,13 +216,22 @@ export const RetroCard: React.FC<RetroCardProps> = ({
 
                 {/* Footer: Author Avatar & Reactions */}
                 <div className="min-h-[32px] flex items-center justify-between px-2 pb-2 bg-white rounded-b-[3px] shrink-0 w-full mt-auto gap-2">
-                    <div 
-                        className="w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center shadow-sm shrink-0"
-                        style={{ backgroundColor: item.author_color || colors.n40 }}
-                        title={item.author_name}
-                    >
-                        {(item.author_name || 'U').charAt(0)}
-                    </div>
+                    {item.is_incognito ? (
+                        <img
+                            src="/icons/anonymous.svg"
+                            alt="Anonymous"
+                            className="w-4 h-4 shrink-0"
+                            title="Anonymous"
+                        />
+                    ) : (
+                        <div
+                            className="w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center shadow-sm shrink-0"
+                            style={{ backgroundColor: item.author_color || colors.n40 }}
+                            title={item.author_name}
+                        >
+                            {(item.author_name || 'U').charAt(0)}
+                        </div>
+                    )}
                     
                     <div className="flex flex-wrap items-center justify-end gap-1 flex-1">
                         {item.reactions.map(r => (

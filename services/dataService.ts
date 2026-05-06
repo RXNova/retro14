@@ -169,6 +169,7 @@ export const dataService = {
     user: User,
     sprintId: string,
     isStaged: boolean = true,
+    isIncognito: boolean = false,
   ): Promise<RetroItem> {
     const newItem: RetroItem = {
       id: crypto.randomUUID(),
@@ -179,10 +180,11 @@ export const dataService = {
       votes: {},
       actionItems: [],
       created_at: new Date().toISOString(),
-      author_name: user.name,
-      author_role: user.role,
-      author_color: user.color,
+      author_name: isIncognito ? undefined : user.name,
+      author_role: isIncognito ? undefined : user.role,
+      author_color: isIncognito ? undefined : user.color,
       is_staged: isStaged,
+      is_incognito: isIncognito,
       parent_id: null,
       type: "card",
       sprint_id: sprintId,
@@ -200,10 +202,11 @@ export const dataService = {
             comments: [],
             votes: {},
             actionItems: [],
-            author_name: user.name,
-            author_role: user.role,
-            author_color: user.color,
+            author_name: isIncognito ? null : user.name,
+            author_role: isIncognito ? null : user.role,
+            author_color: isIncognito ? null : user.color,
             is_staged: isStaged,
+            is_incognito: isIncognito,
             type: "card",
             sprint_id: sprintId,
             user_id: user.id,
@@ -498,6 +501,41 @@ export const dataService = {
     }
     const item = mockData.find((i) => i.id === id);
     if (item) item.content = content;
+    return Promise.resolve();
+  },
+
+  async updateItemIncognito(
+    id: string,
+    isIncognito: boolean,
+    user?: User,
+  ): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      const updateData: any = { is_incognito: isIncognito };
+      if (isIncognito) {
+        updateData.author_name = null;
+        updateData.author_role = null;
+        updateData.author_color = null;
+      } else if (user) {
+        updateData.author_name = user.name;
+        updateData.author_role = user.role;
+        updateData.author_color = user.color;
+      }
+      await supabase.from("retro_items").update(updateData).eq("id", id);
+      return;
+    }
+    const item = mockData.find((i) => i.id === id);
+    if (item) {
+      item.is_incognito = isIncognito;
+      if (isIncognito) {
+        item.author_name = undefined;
+        item.author_role = undefined;
+        item.author_color = undefined;
+      } else if (user) {
+        item.author_name = user.name;
+        item.author_role = user.role;
+        item.author_color = user.color;
+      }
+    }
     return Promise.resolve();
   },
 
