@@ -1,0 +1,21 @@
+# Development override — hot reload via Vite dev server
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Differences from production:
+#  - app uses Vite dev server instead of nginx (hot reload)
+#  - source is mounted so changes reflect instantly
+#  - MAILER_AUTOCONFIRM is true (no email confirmation needed)
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_SUPABASE_URL: ${API_EXTERNAL_URL:-http://localhost:8000}
+      VITE_SUPABASE_ANON_KEY: ${ANON_KEY}

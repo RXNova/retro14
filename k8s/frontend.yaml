@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retro14-app
+  namespace: retro14
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: retro14-app
+  template:
+    metadata:
+      labels:
+        app: retro14-app
+    spec:
+      containers:
+        - name: app
+          image: retro14-app:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: VITE_SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: retro14-secrets
+                  key: supabase-url
+            - name: VITE_SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: retro14-secrets
+                  key: supabase-anon-key
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: retro14-app
+  namespace: retro14
+spec:
+  selector:
+    app: retro14-app
+  ports:
+    - port: 80
+      targetPort: 80
